@@ -1,0 +1,3 @@
+Live demo: https://ai-workbench-liart.vercel.app
+GitHub: https://github.com/Ajith33321/ai-workbench
+Demo logins: host@demo.local / demo1234, owner@demo.local / demo1234
