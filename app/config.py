@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-DATA_DIR = Path(os.getenv("DATA_DIR", BASE_DIR / "data"))
+# On Vercel the code folder is read-only, so the demo database lives in /tmp there.
+_default_data = Path("/tmp/data") if os.getenv("VERCEL") else BASE_DIR / "data"
+DATA_DIR = Path(os.getenv("DATA_DIR", _default_data))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR = DATA_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
