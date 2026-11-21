@@ -127,8 +127,8 @@ nav.links .meta { font-size: 0.75rem; color: var(--muted); margin-left: 8px; }
 
 .nav-toggle {
   display: none;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -631,4 +631,124 @@ footer.landing-foot a { color: var(--ink-soft); }
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .pill:hover { transform: none; }
+}
+
+
+/* ---------- Mobile-friendly refinements (375–414px and up) ---------- */
+html { overflow-x: clip; }
+body { overflow-x: clip; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+.mono, a.mono, td a, td .mono {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.btn, button.btn, input[type=submit].btn, .pill, .nav-cta, a.nav-cta {
+  min-height: 44px;
+}
+input[type=text], input[type=email], input[type=password], input[type=number],
+input[type=file], textarea, select {
+  min-height: 44px;
+  max-width: 100%;
+}
+textarea { min-height: 140px; }
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.author .creative {
+  font-size: 1.02rem;
+  color: var(--ink-soft);
+  max-width: 28em;
+  margin: 0 auto 22px;
+  line-height: 1.45;
+}
+
+@media (max-width: 820px) {
+  .lnav-links a, header.site nav.links a, header.site nav.links button.linkish {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    font-size: 1.05rem;
+    padding: 12px 12px;
+  }
+  .nav-cta, a.nav-cta {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 700px) {
+  .wrap, .wrap-narrow, header.site .bar, .lnav .bar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  body.app main.wrap.page { padding: 24px 16px 72px; }
+  .lhero {
+    min-height: auto;
+    padding: 64px 16px 72px;
+  }
+  .lhero h1 { font-size: clamp(2.15rem, 11vw, 3rem); }
+  .lhero .sub { font-size: 1.08rem; padding: 0 4px; }
+  .actions { justify-content: center; width: 100%; }
+  .pill { min-height: 44px; width: auto; padding: 12px 22px; }
+  .tile { padding: 64px 16px 56px; }
+  .tile-copy { margin-bottom: 28px; }
+  .atmosphere { height: 200px; border-radius: 18px; margin-bottom: 22px; }
+  .device { border-radius: 16px; }
+  .device-screen { height: 300px; }
+  .built, .author { padding: 64px 16px 56px; }
+  .built-item { padding: 22px 14px 20px; }
+  footer.landing-foot { padding: 24px 16px 36px; }
+  .page h1, body.app .page h1 { font-size: 1.7rem; word-wrap: break-word; }
+  .card { padding: 18px; border-radius: 18px; }
+  form .btn, .card .btn { min-height: 44px; }
+  /* Long booking / review URLs */
+  table { font-size: 0.88rem; }
+  th, td { padding: 10px 8px; }
+  header.site, .lnav { width: 100%; }
+  .banner .wrap { padding-left: 16px; padding-right: 16px; }
+}
+
+@media (max-width: 420px) {
+  .lhero .actions { flex-direction: column; align-items: stretch; }
+  .lhero .pill { width: 100%; }
+  .tile-links { flex-wrap: wrap; gap: 14px; }
+  .stat .n { font-size: 1.55rem; }
+}
+
+
+@media (max-width: 700px) {
+  .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap th, .table-wrap td, .table-wrap tr {
+    display: block;
+    width: 100%;
+  }
+  .table-wrap thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .table-wrap tr {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin: 0 0 10px;
+  }
+  .table-wrap tr:hover td { background: transparent; }
+  .table-wrap td, .table-wrap th {
+    border: 0;
+    padding: 5px 0 5px 0;
+    text-align: left;
+  }
+  .table-wrap td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
 }
