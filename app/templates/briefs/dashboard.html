@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Review to Reel — UGC briefs from guest reviews{% endblock %}
+{% block body %}
+<div class="kicker">Review to Reel</div>
+<h1>UGC briefs from real guest language</h1>
+<p class="muted">This desk reads reviews already stored in SQLite, or a batch you paste, and writes shoot-ready 15-second Reel briefs. Each brief keeps the verbatim lines and source review ids, so you can check the wording. Nothing is auto-posted.</p>
+{% if error %}<div class="flash">{{ error }}</div>{% endif %}
+
+<div class="grid-3" style="margin:18px 0 24px">
+  <div class="stat"><div class="l">Reviews on file</div><div class="n">{{ saved_count }}</div><p class="meta" style="margin:6px 0 0">From Review Rewards, if you are the owner</p></div>
+  <div class="stat"><div class="l">Brief packs</div><div class="n">{{ packs|length }}</div><p class="meta" style="margin:6px 0 0">One pack is one generation run</p></div>
+  <div class="stat"><div class="l">Briefs</div><div class="n">{{ briefs|length }}</div><p class="meta" style="margin:6px 0 0">{{ briefs|selectattr('status','equalto','approved')|list|length }} approved to shoot</p></div>
+</div>
+
+<section class="card" style="margin-bottom:28px">
+  <h2>Generate a new pack</h2>
+  <form method="post" action="/briefs/generate">
+    <label for="title">Pack title</label>
+    <input id="title" name="title" type="text" value="This week's Reel briefs">
+    <label for="language">Language</label>
+    <select id="language" name="language">
+      <option value="both" selected>English and Tamil</option>
+      <option value="en">English only</option>
+      <option value="ta">Tamil only</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:14px">
+      <input type="checkbox" name="use_saved" value="1" {% if saved_count %}checked{% endif %} style="width:auto">
+      Use {{ saved_count }} saved review{{ 's' if saved_count != 1 else '' }} from this account
+    </label>
+    <label for="pasted">Or paste reviews (one per paragraph)</label>
+    <textarea id="pasted" name="pasted" placeholder="The filter coffee was excellent, but we waited a long time on Sunday.&#10;&#10;Crisp dosa, warm service, will come back."></textarea>
+    <button class="btn" type="submit">Cluster reviews and write briefs</button>
+  </form>
+  <p class="meta">The prompt (or demo mode) will not invent a “no wait” claim if guests complained about a wait, and it will not offer a discount for a review.</p>
+</section>
+
+<h2>Your brief packs</h2>
+{% if packs %}
+<table>
+  <thead><tr><th>Title</th><th>Source</th><th>Reviews used</th><th>Language</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for p in packs %}
+    <tr>
+      <td>{{ p.title }}</td>
+      <td class="meta">{{ p.source_label or p.source }}</td>
+      <td>{{ p.reviews_used }}</td>
+      <td>{{ p.language }}</td>
+      <td><span class="chip {{ p.status }}">{{ p.status }}</span></td>
+      <td><a href="/briefs/{{ p.id }}">Open</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No packs yet. Generate one above.</p>
+{% endif %}
+
+{% if briefs %}
+<h2 style="margin-top:32px">Latest briefs</h2>
+<div class="grid-2">
+  {% for b in briefs[:6] %}
+  <article class="card">
+    <p class="meta"><span class="chip">{{ b.theme }}</span> <span class="chip {{ b.angle }}">{{ b.angle }}</span> <span class="chip">{{ b.language }}</span> <span class="chip {{ b.status }}">{{ b.status }}</span></p>
+    <h2 style="font-size:1.15rem">{% if b.hooks() %}{{ b.hooks()[0] }}{% else %}{{ b.theme }} brief{% endif %}</h2>
+    <p class="muted">{{ b.script[:180] }}{% if b.script|length > 180 %}…{% endif %}</p>
+    <p><a href="/briefs/{{ b.pack_id }}">Open pack</a></p>
+  </article>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

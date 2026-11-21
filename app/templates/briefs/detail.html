@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ pack.title }} — Review to Reel{% endblock %}
+{% block body %}
+<p class="meta"><a href="/briefs">← Briefs desk</a></p>
+<div class="kicker">{{ pack.reviews_used }} reviews · {{ pack.language }} · {{ pack.source_label or pack.source }}</div>
+<h1>{{ pack.title }}</h1>
+<p class="muted">Each brief is stored as a row in SQLite. Approve the ones you would actually shoot. Quotes below are taken from the source reviews, not written from scratch.</p>
+
+{% for b in briefs %}
+<article class="card" style="margin-bottom:18px">
+  <p class="meta">
+    <span class="chip">{{ b.theme }}</span>
+    <span class="chip {{ b.angle }}">{{ b.angle }}</span>
+    <span class="chip">{{ b.language }}</span>
+    <span class="chip {{ b.status }}">{{ b.status }}</span>
+    {% if b.source_review_ids() %}<span class="meta">sources: {{ b.source_review_ids()|join(', ') }}</span>{% endif %}
+  </p>
+  <h2 style="font-size:1.25rem;margin-top:6px">Hooks</h2>
+  <ol>
+    {% for h in b.hooks() %}<li>{{ h }}</li>{% else %}<li class="muted">None</li>{% endfor %}
+  </ol>
+  <div class="grid-2">
+    <div>
+      <h2 style="font-size:1.1rem">15-second script</h2>
+      <p>{{ b.script }}</p>
+      <p><b>On-screen text:</b> {{ b.on_screen_text }}</p>
+      <p><b>CTA:</b> {{ b.cta }}</p>
+    </div>
+    <div>
+      <h2 style="font-size:1.1rem">Shot list</h2>
+      <ul>
+        {% for s in b.shot_list() %}<li>{{ s }}</li>{% else %}<li class="muted">None</li>{% endfor %}
+      </ul>
+      <h2 style="font-size:1.1rem">Verbatim guest lines</h2>
+      <ul>
+        {% for q in b.quotes() %}<li>“{{ q }}”</li>{% else %}<li class="muted">None attached</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% if b.caution %}<div class="flash">{{ b.caution }}</div>{% endif %}
+  {% if b.status != 'approved' %}
+  <form method="post" action="/briefs/{{ b.id }}/approve">
+    <button class="btn teal" type="submit">Approve this brief to shoot</button>
+  </form>
+  {% endif %}
+</article>
+{% else %}
+<p class="muted">No briefs in this pack.</p>
+{% endfor %}
+{% endblock %}

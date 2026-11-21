@@ -24,6 +24,7 @@ class User(Base):
     slots: Mapped[list["MeetingSlot"]] = relationship(back_populates="host")
     meetings: Mapped[list["Meeting"]] = relationship(back_populates="host")
     restaurants: Mapped[list["Restaurant"]] = relationship(back_populates="owner")
+    brief_packs: Mapped[list["BriefPack"]] = relationship(back_populates="user")
 
 
 class MeetingSlot(Base):
@@ -150,3 +151,58 @@ class Coupon(Base):
 
     branch: Mapped[Branch] = relationship(back_populates="coupons")
     review: Mapped[Review | None] = relationship(back_populates="coupon")
+
+
+
+class BriefPack(Base):
+    """One generation run of Review-to-Reel briefs."""
+
+    __tablename__ = "brief_packs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    title: Mapped[str] = mapped_column(String(200))
+    language: Mapped[str] = mapped_column(String(16), default="both")  # en | ta | both
+    source: Mapped[str] = mapped_column(String(30), default="saved_reviews")
+    reviews_used: Mapped[int] = mapped_column(Integer, default=0)
+    source_label: Mapped[str] = mapped_column(String(200), default="")
+    status: Mapped[str] = mapped_column(String(20), default="generated")  # generated | approved
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    user: Mapped[User] = relationship(back_populates="brief_packs")
+    briefs: Mapped[list["UgcBrief"]] = relationship(back_populates="pack")
+
+
+class UgcBrief(Base):
+    __tablename__ = "ugc_briefs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    pack_id: Mapped[int] = mapped_column(ForeignKey("brief_packs.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    theme: Mapped[str] = mapped_column(String(40))
+    angle: Mapped[str] = mapped_column(String(20))  # proof | desire | objection
+    language: Mapped[str] = mapped_column(String(8), default="en")
+    hooks_json: Mapped[str] = mapped_column(Text, default="[]")
+    script: Mapped[str] = mapped_column(Text, default="")
+    shot_list_json: Mapped[str] = mapped_column(Text, default="[]")
+    on_screen_text: Mapped[str] = mapped_column(Text, default="")
+    cta: Mapped[str] = mapped_column(String(240), default="")
+    quotes_json: Mapped[str] = mapped_column(Text, default="[]")
+    source_review_ids_json: Mapped[str] = mapped_column(Text, default="[]")
+    caution: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(20), default="draft")  # draft | approved
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    pack: Mapped[BriefPack] = relationship(back_populates="briefs")
+
+    def hooks(self) -> list:
+        return json.loads(self.hooks_json or "[]")
+
+    def shot_list(self) -> list:
+        return json.loads(self.shot_list_json or "[]")
+
+    def quotes(self) -> list:
+        return json.loads(self.quotes_json or "[]")
+
+    def source_review_ids(self) -> list:
+        return json.loads(self.source_review_ids_json or "[]")

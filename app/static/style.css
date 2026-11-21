@@ -17,14 +17,14 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: "IBM Plex Sans", "Source Sans 3", "Segoe UI", sans-serif;
+  font-family: "IBM Plex Sans", "Noto Sans Tamil", "Source Sans 3", "Segoe UI", sans-serif;
   background: var(--paper);
   color: var(--ink);
   line-height: 1.5;
   min-height: 100vh;
 }
 h1, h2, h3, .brand, .display {
-  font-family: "Fraunces", "Source Serif 4", Georgia, serif;
+  font-family: "Fraunces", "Noto Sans Tamil", "Source Serif 4", Georgia, serif;
   font-weight: 560;
   letter-spacing: -0.02em;
 }
@@ -144,3 +144,6 @@ code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.86em;
 .stack > * + * { margin-top: 16px; }
 .muted { color: var(--muted); }
 hr.faint { border: 0; border-top: 1px solid var(--line); margin: 22px 0; }
+
+.chip.proof, .chip.desire, .chip.generated, .chip.approved { background: #dcefe5; color: var(--good); }
+.chip.objection, .chip.draft { background: #f3ead4; color: var(--warn); }

@@ -6,11 +6,13 @@ Read this out loud once or twice before any AI-engineer call. If you cannot expl
 
 ## One-minute story
 
-I am moving from performance marketing into junior AI engineering. I built two small web apps so I could show the work, not just talk about ideas.
+I am moving from performance marketing into junior AI engineering. I built three small web apps so I could show the work, not just talk about ideas.
 
 **Book & Record** is a meeting assistant. I can create a booking link, someone books a slot, then I paste the transcript or upload audio. The app stores that in a database, sends the text to a language model with a strict JSON prompt, and comes back with a summary, checkpoints, decisions, and a to-do list with owners.
 
 **Review Rewards** is for a restaurant group. Each branch has a public link and a QR code. A guest writes a review. The app scores sentiment, tags food, service and wait, and can issue a coupon or a small cashback code. The owner dashboard reads those rows from the database — it is not a fake screenshot.
+
+**Review to Reel** is the one that uses my actual marketing skill. It reads those guest reviews, or a pasted batch, and writes a 15-second UGC brief: hooks, a shot list, on-screen text, a CTA, and the exact guest lines it used, in English and Tamil. I approve a brief before it is marked ready to shoot. If a guest complained about a long wait, the brief says so and warns me not to invent a “no wait” claim.
 
 If there is no OpenAI key, the same buttons still work, in a demo mode I wrote, so anyone can try the path end to end.
 
@@ -20,10 +22,10 @@ If there is no OpenAI key, the same buttons still work, in a demo mode I wrote, 
 
 - **Python + FastAPI.** FastAPI is a Python web framework. Each URL is a function. Some functions return a web page. Some return JSON for tests and for the API.
 - **Jinja templates.** The HTML pages. The server fills in names, tables and scores before sending the page.
-- **SQLite + SQLAlchemy.** SQLite is a database in a file. SQLAlchemy is how the Python code talks to it. Meetings, reviews and coupons are rows in tables. When I open the dashboard, the app queries those tables.
+- **SQLite + SQLAlchemy.** SQLite is a database in a file. SQLAlchemy is how the Python code talks to it. Meetings, reviews, coupons and UGC briefs are rows in tables. When I open the dashboard, the app queries those tables.
 - **JWT auth.** After login, the server gives me a signed token. The browser stores it in an httpOnly cookie. On the next request the server checks the signature and expiry, then loads my user. That is how it knows whose meetings to show. The API can also send the same token as `Authorization: Bearer …`.
 - **Password hashing.** The password is not stored as text. It is passed through PBKDF2 (a slow hash with a salt) so a stolen database is not enough to read the password.
-- **OpenAI API.** With a key: Whisper turns audio into text, and a chat model (default `gpt-4o-mini`) returns JSON for notes or for sentiment. Without a key: demo mode uses rules I wrote, so the app still runs.
+- **OpenAI API.** With a key: Whisper turns audio into text, and a chat model (default `gpt-4o-mini`) returns JSON for notes, sentiment, or UGC briefs. Without a key: demo mode uses rules I wrote, so the app still runs.
 - **QR codes.** Each branch token is turned into a PNG that points at `/r/<token>`.
 - **Render / Docker.** The repo has a Dockerfile, a Procfile and render.yaml so it can be deployed with one service on Render’s free plan.
 
@@ -102,7 +104,7 @@ Yes, this is my portfolio project. I can open the repo, run it, and walk through
 ChatGPT is a chat box. This is an application: accounts, a database, public links, stored outputs, and a dashboard that reads those outputs later.
 
 **“Why not LangChain?”**  
-I did not need it. I have two prompts and two API calls. A framework would have hidden the part I wanted to learn. I can add LangChain later if I build retrieval or tool-calling agents.
+I did not need it. I have three structured prompts and a few API calls. A framework would have hidden the part I wanted to learn. I can add LangChain later if I build retrieval or tool-calling agents.
 
 **“Is this RAG?”**  
 No. RAG means retrieve relevant documents, then generate an answer from them. This app sends the transcript or review you just gave it. I will not write “RAG” on the resume for this project.
@@ -128,6 +130,9 @@ Deploy it on Render, put the live link on my resume, add a “host edits the not
 **“You come from marketing. Why AI engineering?”**  
 I already use ChatGPT, Claude and Gemini every day on campaigns. I wanted to understand the application side: auth, data, prompts, and a deployable service. These two ideas — meeting notes and review-for-rewards — came from problems I actually see in marketing and local business work.
 
+**“Why is this not just ChatGPT writing an ad?”**  
+Because the brief is grounded in stored reviews, one idea at a time, with source ids I can open, a Tamil version, and a human approve step. The prompt is also forbidden from inventing a fix.
+
 **“What is your Python level?”**  
 Beginner professionally. Zero years as a professional Python engineer. I can read and change this project. I am honest about that.
 
@@ -139,6 +144,7 @@ Beginner professionally. Zero years as a professional Python engineer. I can rea
 2. Sign in as `host@demo.local` / `demo1234`. Show the meetings desk and the already processed “Q4 campaign review”. Open it: summary, checkpoints, to-dos with Priya, Ravi, Ajith.
 3. Open the public booking link in a new tab (no login).
 4. Sign out, sign in as `owner@demo.local` / `demo1234`. Show Spice Garden, branch scores, the QR, the review table, the coupon codes.
-5. Optionally submit a new review on the Koramangala link and watch a new row and code appear.
+5. Open **Review to Reel**. Show a brief: hooks, shot list, verbatim quotes, source review ids. Point at a wait-time objection brief and the caution not to claim “no wait.” Approve one brief.
+6. Optionally submit a new review on the Koramangala link, generate a fresh pack, and show the new rows.
 
-If the interviewer wants code, start with `app/llm.py` (prompts) and `app/auth.py` (JWT), then the process-meeting and submit-review functions in `app/main.py`.
+If the interviewer wants code, start with `app/llm.py` (prompts) and `app/auth.py` (JWT), then the process-meeting, submit-review and generate-briefs functions in `app/main.py`.

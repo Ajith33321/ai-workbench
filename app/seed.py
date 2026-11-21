@@ -10,11 +10,13 @@ from app.auth import hash_password
 from app.models import (
     Booking,
     Branch,
+    BriefPack,
     Coupon,
     Meeting,
     MeetingSlot,
     Restaurant,
     Review,
+    UgcBrief,
     User,
 )
 
@@ -225,4 +227,67 @@ def seed_if_empty(db: Session) -> None:
             )
         )
 
+    db.commit()
+    seed_briefs_if_empty(db)
+
+
+
+def seed_briefs_if_empty(db: Session) -> None:
+    """Add a demo Review-to-Reel pack for the owner if none exist yet."""
+    if db.query(BriefPack).first():
+        return
+    owner = db.query(User).filter(User.email == DEMO_OWNER_EMAIL).first()
+    if not owner:
+        return
+    reviews = (
+        db.query(Review)
+        .join(Branch, Review.branch_id == Branch.id)
+        .join(Restaurant, Branch.restaurant_id == Restaurant.id)
+        .filter(Restaurant.owner_id == owner.id)
+        .all()
+    )
+    if not reviews:
+        return
+    from app import llm
+
+    payload = [
+        {
+            "id": r.id,
+            "name": r.customer_name,
+            "text": r.text,
+            "sentiment_label": r.sentiment_label,
+        }
+        for r in reviews
+    ]
+    items, source = llm.generate_ugc_briefs(payload, language="both")
+    pack = BriefPack(
+        user_id=owner.id,
+        title="Spice Garden — Review to Reel (demo)",
+        language="both",
+        source="saved_reviews",
+        reviews_used=len(reviews),
+        source_label="Spice Garden reviews already in the database",
+        status="generated",
+    )
+    db.add(pack)
+    db.flush()
+    for item in items:
+        db.add(
+            UgcBrief(
+                pack_id=pack.id,
+                user_id=owner.id,
+                theme=item["theme"],
+                angle=item["angle"],
+                language=item["language"],
+                hooks_json=json.dumps(item["hooks"]),
+                script=item["script"],
+                shot_list_json=json.dumps(item["shot_list"]),
+                on_screen_text=item["on_screen_text"],
+                cta=item["cta"],
+                quotes_json=json.dumps(item["quotes"]),
+                source_review_ids_json=json.dumps(item["source_review_ids"]),
+                caution=item.get("caution") or "",
+                status="draft",
+            )
+        )
     db.commit()

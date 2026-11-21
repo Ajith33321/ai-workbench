@@ -1,4 +1,4 @@
-"""FastAPI entry point: HTML pages + JSON API for Book & Record and Review Rewards."""
+"""FastAPI entry point: HTML pages + JSON API for Book & Record, Review Rewards and Review to Reel."""
 
 from __future__ import annotations
 
@@ -27,12 +27,13 @@ from app.auth import (
 )
 from app.config import APP_NAME, COOKIE_NAME, DATA_DIR, DEMO_MODE, UPLOAD_DIR
 from app.database import Base, SessionLocal, engine, get_db
-from app.models import Booking, Branch, Coupon, Meeting, MeetingSlot, Restaurant, Review, User
-from app.seed import DEMO_HOST_EMAIL, DEMO_OWNER_EMAIL, DEMO_PASSWORD, seed_if_empty
+from app.models import Booking, Branch, BriefPack, Coupon, Meeting, MeetingSlot, Restaurant, Review, UgcBrief, User
+from app.seed import DEMO_HOST_EMAIL, DEMO_OWNER_EMAIL, DEMO_PASSWORD, seed_briefs_if_empty, seed_if_empty
 
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as _db:
     seed_if_empty(_db)
+    seed_briefs_if_empty(_db)
 
 app = FastAPI(title=APP_NAME, docs_url="/api/docs", redoc_url=None)
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -77,6 +78,91 @@ def _coupon_code(branch: Branch) -> str:
 
 def _public_base(request: Request) -> str:
     return str(request.base_url).rstrip("/")
+
+
+
+def _reviews_for_user(db: Session, user: User) -> list[dict]:
+    resto = db.query(Restaurant).filter(Restaurant.owner_id == user.id).first()
+    if not resto:
+        return []
+    branches = db.query(Branch).filter(Branch.restaurant_id == resto.id).all()
+    ids = [b.id for b in branches]
+    if not ids:
+        return []
+    rows = (
+        db.query(Review)
+        .filter(Review.branch_id.in_(ids))
+        .order_by(Review.created_at.desc())
+        .all()
+    )
+    return [
+        {"id": r.id, "name": r.customer_name, "text": r.text, "sentiment_label": r.sentiment_label}
+        for r in rows
+    ]
+
+
+def _save_brief_pack(
+    db: Session,
+    user: User,
+    title: str,
+    language: str,
+    source: str,
+    source_label: str,
+    reviews: list[dict],
+    items: list[dict],
+) -> BriefPack:
+    pack = BriefPack(
+        user_id=user.id,
+        title=title.strip() or "Review to Reel",
+        language=language,
+        source=source,
+        reviews_used=len(reviews),
+        source_label=source_label,
+        status="generated",
+    )
+    db.add(pack)
+    db.flush()
+    for item in items:
+        db.add(
+            UgcBrief(
+                pack_id=pack.id,
+                user_id=user.id,
+                theme=item.get("theme") or "general",
+                angle=item.get("angle") or "proof",
+                language=item.get("language") or "en",
+                hooks_json=json.dumps(item.get("hooks") or []),
+                script=item.get("script") or "",
+                shot_list_json=json.dumps(item.get("shot_list") or []),
+                on_screen_text=item.get("on_screen_text") or "",
+                cta=item.get("cta") or "",
+                quotes_json=json.dumps(item.get("quotes") or []),
+                source_review_ids_json=json.dumps(item.get("source_review_ids") or []),
+                caution=item.get("caution") or "",
+                status="draft",
+            )
+        )
+    db.commit()
+    db.refresh(pack)
+    return pack
+
+
+def _brief_payload(brief: UgcBrief) -> dict:
+    return {
+        "id": brief.id,
+        "pack_id": brief.pack_id,
+        "theme": brief.theme,
+        "angle": brief.angle,
+        "language": brief.language,
+        "hooks": brief.hooks(),
+        "script": brief.script,
+        "shot_list": brief.shot_list(),
+        "on_screen_text": brief.on_screen_text,
+        "cta": brief.cta,
+        "quotes": brief.quotes(),
+        "source_review_ids": brief.source_review_ids(),
+        "caution": brief.caution,
+        "status": brief.status,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -519,6 +605,130 @@ def review_submit(
 
 
 # ---------------------------------------------------------------------------
+# Pages — Review to Reel
+# ---------------------------------------------------------------------------
+@app.get("/briefs", response_class=HTMLResponse)
+def briefs_dashboard(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    error: str | None = None,
+):
+    packs = (
+        db.query(BriefPack)
+        .filter(BriefPack.user_id == user.id)
+        .order_by(BriefPack.created_at.desc())
+        .all()
+    )
+    briefs = (
+        db.query(UgcBrief)
+        .filter(UgcBrief.user_id == user.id)
+        .order_by(UgcBrief.created_at.desc())
+        .all()
+    )
+    saved = _reviews_for_user(db, user)
+    return templates.TemplateResponse(
+        request,
+        "briefs/dashboard.html",
+        _ctx(
+            request,
+            user,
+            packs=packs,
+            briefs=briefs,
+            saved_count=len(saved),
+            error=error,
+        ),
+    )
+
+
+@app.post("/briefs/generate")
+def briefs_generate_form(
+    request: Request,
+    user: User = Depends(get_current_user),
+    title: str = Form("Review to Reel"),
+    language: str = Form("both"),
+    use_saved: str = Form(""),
+    pasted: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    language = language if language in {"en", "ta", "both"} else "both"
+    reviews: list[dict] = []
+    sources = []
+    if use_saved:
+        reviews.extend(_reviews_for_user(db, user))
+        if reviews:
+            sources.append("saved_reviews")
+    pasted_rows = llm.parse_pasted_reviews(pasted)
+    if pasted_rows:
+        reviews.extend(pasted_rows)
+        sources.append("paste")
+    if not reviews:
+        return briefs_dashboard(
+            request,
+            user,
+            db,
+            error="Add saved reviews or paste at least one review (a few sentences).",
+        )
+    items, _source = llm.generate_ugc_briefs(reviews, language=language)
+    source = "mixed" if len(sources) > 1 else (sources[0] if sources else "paste")
+    label = " + ".join(
+        [
+            f"{len(_reviews_for_user(db, user))} saved reviews" if "saved_reviews" in sources else "",
+            "pasted text" if "paste" in sources else "",
+        ]
+    ).strip(" +")
+    pack = _save_brief_pack(db, user, title, language, source, label, reviews, items)
+    return RedirectResponse(f"/briefs/{pack.id}", status_code=302)
+
+
+@app.get("/briefs/{pack_id}", response_class=HTMLResponse)
+def brief_pack_page(
+    pack_id: int,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    pack = db.get(BriefPack, pack_id)
+    if not pack or pack.user_id != user.id:
+        raise HTTPException(404, "Brief pack not found")
+    briefs = (
+        db.query(UgcBrief)
+        .filter(UgcBrief.pack_id == pack.id)
+        .order_by(UgcBrief.id.asc())
+        .all()
+    )
+    return templates.TemplateResponse(
+        request,
+        "briefs/detail.html",
+        _ctx(request, user, pack=pack, briefs=briefs),
+    )
+
+
+@app.post("/briefs/{brief_id}/approve")
+def approve_brief_form(
+    brief_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    brief = db.get(UgcBrief, brief_id)
+    if not brief or brief.user_id != user.id:
+        raise HTTPException(404, "Brief not found")
+    brief.status = "approved"
+    pack = db.get(BriefPack, brief.pack_id)
+    if pack and pack.user_id == user.id:
+        remaining = (
+            db.query(UgcBrief)
+            .filter(UgcBrief.pack_id == pack.id, UgcBrief.status != "approved")
+            .count()
+        )
+        # the current brief is still draft in this count; treat it as approved
+        if remaining <= 1:
+            pack.status = "approved"
+    db.commit()
+    return RedirectResponse(f"/briefs/{brief.pack_id}", status_code=302)
+
+
+# ---------------------------------------------------------------------------
 # JSON API (used by the smoke test, also handy in interviews)
 # ---------------------------------------------------------------------------
 @app.post("/api/auth/signup")
@@ -756,3 +966,88 @@ def api_list_reviews(user: User = Depends(require_owner), db: Session = Depends(
             for c in coupons
         ],
     }
+
+
+@app.post("/api/briefs/generate")
+def api_generate_briefs(
+    payload: dict = Body(...),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    language = str(payload.get("language") or "both")
+    if language not in {"en", "ta", "both"}:
+        language = "both"
+    reviews: list[dict] = []
+    sources = []
+    if payload.get("use_saved_reviews"):
+        reviews.extend(_reviews_for_user(db, user))
+        if reviews:
+            sources.append("saved_reviews")
+    pasted_rows = llm.parse_pasted_reviews(str(payload.get("pasted") or payload.get("text") or ""))
+    if pasted_rows:
+        reviews.extend(pasted_rows)
+        sources.append("paste")
+    if not reviews:
+        raise HTTPException(400, "Provide saved reviews or pasted review text")
+    items, llm_source = llm.generate_ugc_briefs(reviews, language=language)
+    source = "mixed" if len(sources) > 1 else sources[0]
+    label = "saved reviews" if "saved_reviews" in sources else "pasted reviews"
+    if "saved_reviews" in sources and "paste" in sources:
+        label = "saved and pasted reviews"
+    title = str(payload.get("title") or "Review to Reel")
+    pack = _save_brief_pack(db, user, title, language, source, label, reviews, items)
+    briefs = db.query(UgcBrief).filter(UgcBrief.pack_id == pack.id).order_by(UgcBrief.id.asc()).all()
+    return {
+        "pack_id": pack.id,
+        "title": pack.title,
+        "language": pack.language,
+        "source": pack.source,
+        "reviews_used": pack.reviews_used,
+        "llm_source": llm_source,
+        "briefs": [_brief_payload(b) for b in briefs],
+    }
+
+
+@app.get("/api/briefs")
+def api_list_briefs(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    packs = (
+        db.query(BriefPack)
+        .filter(BriefPack.user_id == user.id)
+        .order_by(BriefPack.created_at.desc())
+        .all()
+    )
+    briefs = (
+        db.query(UgcBrief)
+        .filter(UgcBrief.user_id == user.id)
+        .order_by(UgcBrief.id.asc())
+        .all()
+    )
+    return {
+        "packs": [
+            {
+                "id": p.id,
+                "title": p.title,
+                "language": p.language,
+                "source": p.source,
+                "reviews_used": p.reviews_used,
+                "status": p.status,
+            }
+            for p in packs
+        ],
+        "briefs": [_brief_payload(b) for b in briefs],
+    }
+
+
+@app.post("/api/briefs/{brief_id}/approve")
+def api_approve_brief(
+    brief_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    brief = db.get(UgcBrief, brief_id)
+    if not brief or brief.user_id != user.id:
+        raise HTTPException(404, "Brief not found")
+    brief.status = "approved"
+    db.commit()
+    db.refresh(brief)
+    return _brief_payload(brief)

@@ -180,7 +180,15 @@ def main() -> int:
         (f"{BASE}/book/demo-intro-slot", OUT / "booking_page.png", None),
         (f"{BASE}/reviews", OUT / "reviews_dashboard.png", owner),
         (f"{BASE}/r/demo-kora", OUT / "review_form.png", None),
+        (f"{BASE}/briefs", OUT / "briefs_dashboard.png", owner),
     ]
+    packs = httpx.get(
+        f"{BASE}/api/briefs",
+        headers={"Authorization": f"Bearer {owner}"},
+        timeout=15,
+    ).json()
+    if packs.get("packs"):
+        shots.append((f"{BASE}/briefs/{packs['packs'][0]['id']}", OUT / "briefs_detail.png", owner))
     if processed:
         shots.insert(2, (f"{BASE}/meetings/{processed['id']}", OUT / "meeting_detail.png", host))
 

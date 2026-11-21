@@ -6,16 +6,17 @@
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <header class="site">
     <div class="wrap bar">
-      <a class="brand" href="/">{{ app_name }} <span>·</span> two working apps</a>
+      <a class="brand" href="/">{{ app_name }} <span>·</span> three working apps</a>
       <nav>
         <a href="/meetings">Book &amp; Record</a>
         <a href="/reviews">Review Rewards</a>
+        <a href="/briefs">Review to Reel</a>
         {% if user %}
           <span class="meta" style="margin-left:16px">{{ user.name }}</span>
           <form action="/logout" method="post" style="display:inline">
@@ -29,13 +30,13 @@
     </div>
   </header>
   {% if demo_mode %}
-  <div class="banner"><div class="wrap">Demo mode is on (no <code>OPENAI_API_KEY</code>). Transcription, summaries and sentiment use a deterministic stand-in so the full path still runs. Set the key to switch on Whisper and the chat model.</div></div>
+  <div class="banner"><div class="wrap">Demo mode is on (no <code>OPENAI_API_KEY</code>). Transcription, summaries, sentiment and UGC briefs use a deterministic stand-in so the full path still runs. Set the key to switch on Whisper and the chat model.</div></div>
   {% endif %}
   <main class="wrap page">
     {% block body %}{% endblock %}
   </main>
   <footer class="site"><div class="wrap">
-    Portfolio app for interviews — JWT auth, SQLite, prompt-driven LLM calls, and a public booking / review link. Data lives in the local database, not in the page.
+    Portfolio app for interviews — JWT auth, SQLite, prompt-driven LLM calls, a public booking / review link, and UGC briefs from real reviews. Data lives in the local database, not in the page.
   </div></footer>
 </body>
 </html>

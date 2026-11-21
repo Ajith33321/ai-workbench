@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end smoke test for both modules, always in demo mode.
+"""End-to-end smoke test for all three modules, always in demo mode.
 
 Run from the repo root:
 
@@ -159,6 +159,66 @@ def main() -> int:
 
     short = client.post(f"/api/reviews/{token_b}", json={"customer_name": "X", "text": "ok"})
     check(short.status_code == 400, "too-short review is rejected")
+
+
+    print("Review to Reel — briefs from saved and pasted reviews")
+    check(TestClient(app).get("/briefs").status_code == 401, "briefs desk requires login")
+    seeded_briefs = client.get("/api/briefs", headers=oh).json()
+    check(len(seeded_briefs.get("packs") or []) >= 1, "owner has a seeded brief pack from Spice Garden reviews")
+    check(len(seeded_briefs.get("briefs") or []) >= 2, "seeded pack contains more than one brief")
+    check(any(b.get("language") == "en" for b in seeded_briefs["briefs"]), "English brief present")
+    check(any(b.get("language") == "ta" for b in seeded_briefs["briefs"]), "Tamil brief present")
+    check(all(b.get("hooks") for b in seeded_briefs["briefs"]), "each seeded brief has hooks")
+    check(any(b.get("quotes") and b.get("source_review_ids") for b in seeded_briefs["briefs"]), "briefs attach verbatim quotes and source review ids")
+    html_b = client.get("/briefs", headers=oh)
+    check(html_b.status_code == 200 and "UGC briefs" in html_b.text, "briefs dashboard HTML")
+    pack_id = seeded_briefs["packs"][0]["id"]
+    detail = client.get(f"/briefs/{pack_id}", headers=oh)
+    check(detail.status_code == 200 and "Hooks" in detail.text, "brief pack detail page")
+    # Owner generates a new pack from saved reviews
+    gen = client.post(
+        "/api/briefs/generate",
+        headers=oh,
+        json={"title": "Smoke pack from saved reviews", "language": "en", "use_saved_reviews": True},
+    )
+    check(gen.status_code == 200, f"generate from saved reviews {gen.status_code}")
+    g = gen.json()
+    check(g.get("reviews_used", 0) >= 4, f"used saved reviews ({g.get('reviews_used')})")
+    check(g.get("briefs") and g["briefs"][0].get("hooks"), "generated briefs include hooks")
+    check(any(b.get("theme") for b in g["briefs"]), "briefs have a theme")
+    # Wait objection should carry a caution, not a fake 'no wait' claim
+    wait_briefs = [b for b in g["briefs"] if b.get("theme") == "wait"]
+    if wait_briefs:
+        check(any("not" in (b.get("caution") or "").lower() or "do not" in (b.get("caution") or "").lower() for b in wait_briefs), "wait briefs include a caution")
+        check(all("no wait" not in (b.get("script") or "").lower() and "no queue" not in (b.get("cta") or "").lower() for b in wait_briefs), "wait briefs do not invent a no-wait claim")
+    approve_id = g["briefs"][0]["id"]
+    ap = client.post(f"/api/briefs/{approve_id}/approve", headers=oh)
+    check(ap.status_code == 200 and ap.json().get("status") == "approved", "approve a brief")
+    again = client.get("/api/briefs", headers=oh).json()
+    check(any(b["id"] == approve_id and b["status"] == "approved" for b in again["briefs"]), "approved status is persisted in SQLite")
+
+    # A host with no restaurant can still paste reviews
+    pasted = client.post(
+        "/api/briefs/generate",
+        headers=h,
+        json={
+            "title": "Clinic paste pack",
+            "language": "en",
+            "use_saved_reviews": False,
+            "pasted": "The doctor explained the procedure clearly and the front desk was kind.\n\nWe waited almost forty minutes after the appointment time. The nurse did apologise.",
+        },
+    )
+    check(pasted.status_code == 200, f"host can generate briefs from pasted reviews {pasted.status_code}")
+    pb = pasted.json()
+    check(pb.get("reviews_used") >= 2, "pasted text split into two reviews")
+    check(pb.get("briefs"), "pasted reviews produced briefs")
+    check(client.get("/api/briefs", headers=h).json().get("packs"), "host pack is scoped to the host account")
+    # Owner cannot see the host's pack (and vice versa already implied)
+    owner_ids = {p["id"] for p in client.get("/api/briefs", headers=oh).json()["packs"]}
+    host_ids = {p["id"] for p in client.get("/api/briefs", headers=h).json()["packs"]}
+    check(owner_ids.isdisjoint(host_ids), "brief packs are scoped to the signed-in user")
+    empty = client.post("/api/briefs/generate", headers=h, json={"title": "Empty", "pasted": "hi"})
+    check(empty.status_code == 400, "too-short paste is rejected")
 
     print("Signup issues a fresh JWT")
     fresh = client.post(

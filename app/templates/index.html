@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}AI Workbench — Book &amp; Record and Review Rewards{% endblock %}
+{% block title %}AI Workbench — three working Gen AI apps{% endblock %}
 {% block body %}
 <section class="hero">
   <div class="kicker">Personal portfolio · built to be deployed</div>
-  <h1 class="display">Two small Gen&nbsp;AI apps with real login, a live database, and a public link you can share.</h1>
-  <p class="lead">This is not a slide deck. You can sign in, write to SQLite, and open a booking page or a restaurant review QR just like a guest would. When an OpenAI key is present, Whisper transcribes audio and a chat model writes the notes or scores the review.</p>
+  <h1 class="display">Three small Gen&nbsp;AI apps with real login, a live database, and a public link you can share.</h1>
+  <p class="lead">This is not a slide deck. You can sign in, write to SQLite, and open a booking page or a restaurant review QR just like a guest would. The third desk turns those reviews into shoot-ready UGC briefs in English and Tamil. When an OpenAI key is present, Whisper transcribes audio and a chat model writes the notes, scores the review, or drafts the brief.</p>
   <div class="actions">
     <a class="btn" href="/login">Sign in</a>
     <a class="btn secondary" href="/signup">Create an account</a>
   </div>
 </section>
 
-<div class="grid-2">
+<div class="grid-3">
   <article class="card">
     <h2>Book &amp; Record</h2>
     <p>Create a Calendly-style booking slot, share the link, then paste a transcript or upload audio. The app stores the meeting, runs a structured prompt, and shows a summary, checkpoints, decisions and a to-do list with owners.</p>
@@ -29,6 +29,15 @@
       <a class="btn teal" href="/login?next=/reviews">Open the owner dashboard</a>
     </div>
     <p class="meta" style="margin-top:14px">Demo owner: <code>{{ demo_owner }}</code> / <code>{{ demo_password }}</code></p>
+  </article>
+  <article class="card">
+    <h2>Review to Reel</h2>
+    <p>A creative desk for a marketer who already shoots UGC. It reads guest reviews from the database (or a pasted batch), clusters themes, and writes one 15-second Reel brief per idea — hooks, shot list, on-screen text, CTA and the verbatim guest lines it used. English and Tamil. You approve a brief before it is marked ready to shoot.</p>
+    <p class="meta">Stack: FastAPI · JWT · SQLite · structured JSON prompt (or demo) · source-review ids · bilingual briefs</p>
+    <div class="actions">
+      <a class="btn teal" href="/login?next=/briefs">Open the briefs desk</a>
+    </div>
+    <p class="meta" style="margin-top:14px">Same owner login as Review Rewards, or any signed-in account with pasted reviews.</p>
   </article>
 </div>
 {% endblock %}

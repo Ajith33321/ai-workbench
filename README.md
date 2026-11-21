@@ -1,9 +1,10 @@
-# AI Workbench — Book & Record + Review Rewards
+# AI Workbench — Book & Record, Review Rewards, and Review to Reel
 
-Two small, interview-ready web apps in one FastAPI project:
+Three small, interview-ready web apps in one FastAPI project:
 
 1. **Book & Record** — a meeting host signs in, creates a public booking link (Calendly-style), then pastes a transcript or uploads audio. The app transcribes with OpenAI Whisper (or a demo stand-in), asks a chat model for a structured summary, and stores checkpoints, decisions and a to-do list with owners in SQLite.
 2. **Review Rewards** — a restaurant owner signs in, adds branches, and gets a public review link plus a QR code for each branch. A guest submits a review. The app scores sentiment, tags food / service / wait, issues a coupon or cashback code, and the owner dashboard reads all of that back from the database.
+3. **Review to Reel** — a creative desk that turns those reviews (or a pasted batch from Google / Zomato / a clinic) into shoot-ready 15-second UGC briefs for Meta / Instagram Reels: one idea per brief, hook options, a shot list, on-screen text, a CTA, verbatim guest lines with source review ids, in English and Tamil. A person approves a brief before it is marked ready to shoot.
 
 This is a personal portfolio project. It is a working application with JWT authentication, a real database, and a path to a public URL. It is not a production SaaS, and no live user or revenue numbers are claimed.
 
@@ -88,6 +89,23 @@ sequenceDiagram
   Owner->>App: Dashboard reads reviews and coupons from DB
 ```
 
+**Review to Reel flow**
+
+```mermaid
+sequenceDiagram
+  participant Marketer
+  participant App
+  participant DB
+  participant LLM
+  Marketer->>App: Sign in (JWT)
+  App->>DB: Load saved reviews (or accept a pasted batch)
+  Marketer->>App: Generate briefs (EN, TA, or both)
+  App->>LLM: Structured UGC-brief prompt
+  LLM-->>App: JSON (hooks, script, shots, quotes, source ids, caution)
+  App->>DB: Store a brief pack and brief rows
+  Marketer->>App: Read the desk, approve a brief to shoot
+```
+
 ---
 
 ## Stack (what is actually in this repo)
@@ -160,7 +178,13 @@ Rules:
 - Never increase a score because the guest asked for a discount.
 ```
 
-Demo mode does not call the API. It uses keyword rules (positive/negative words and theme dictionaries) so a recruiter can still click through.
+**UGC briefs (Review to Reel)**
+
+The full system prompt lives in `app/llm.py` as `BRIEF_SYSTEM_PROMPT`. In short: one idea per brief; use only wording in the reviews; attach source review ids; write Tamil separately when asked; if guests complained about a wait, write an objection brief with a caution — never invent a “no wait” claim; never offer a discount in exchange for a review.
+
+Demo mode clusters reviews with theme dictionaries (food, service, wait, value, ambience) and fills English or Tamil templates. It is deterministic, and it still attaches the real quotes.
+
+Demo mode for meetings and reviews does not call the API either. It uses keyword rules (positive/negative words and theme dictionaries) so a recruiter can still click through.
 
 ---
 
@@ -177,6 +201,8 @@ erDiagram
   branches ||--o{ reviews : receives
   branches ||--o{ coupons : issues
   reviews ||--o| coupons : earns
+  users ||--o{ brief_packs : generates
+  brief_packs ||--o{ ugc_briefs : contains
 
   users {
     int id
@@ -201,6 +227,14 @@ erDiagram
   coupons {
     string code
     string kind
+    string status
+  }
+  ugc_briefs {
+    string theme
+    string angle
+    string language
+    text hooks_json
+    text quotes_json
     string status
   }
 ```
@@ -228,7 +262,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 | Meeting host | `host@demo.local` | `demo1234` |
 | Restaurant owner | `owner@demo.local` | `demo1234` |
 
-The owner dashboard is pre-loaded with **Spice Garden** (Koramangala and Indiranagar) and a few reviews plus coupon codes. The host desk has a processed sample meeting and an open booking slot.
+The owner dashboard is pre-loaded with **Spice Garden** (Koramangala and Indiranagar), a few reviews plus coupon codes, and a **Review to Reel** pack already generated from those reviews (English and Tamil). The host desk has a processed sample meeting and an open booking slot. A host can also paste reviews into Review to Reel without owning a restaurant.
 
 Smoke test (always uses its own empty SQLite file and demo mode):
 
@@ -267,7 +301,7 @@ app/
   auth.py          # PBKDF2 + JWT
   llm.py           # Prompts, OpenAI calls, demo mode
   seed.py          # Demo users and sample rows
-  templates/       # Jinja pages
+  templates/       # Jinja pages, including briefs/
   static/style.css
 tests/smoke_test.py
 scripts/take_screenshots.py
