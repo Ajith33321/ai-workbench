@@ -4,39 +4,54 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="{% block body_class %}app{% endblock %}" id="appShell">
   <header class="site">
-    <div class="wrap bar">
-      <a class="brand" href="/">{{ app_name }} <span>·</span> three working apps</a>
-      <nav>
+    <div class="bar">
+      <a class="brand" href="/">AI Workbench</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" id="navToggle"><span></span></button>
+      <nav class="links" id="navLinks">
         <a href="/meetings">Book &amp; Record</a>
         <a href="/reviews">Review Rewards</a>
         <a href="/briefs">Review to Reel</a>
         {% if user %}
-          <span class="meta" style="margin-left:16px">{{ user.name }}</span>
+          <span class="meta">{{ user.name }}</span>
           <form action="/logout" method="post" style="display:inline">
             <button class="linkish" type="submit">Sign out</button>
           </form>
         {% else %}
           <a href="/login">Sign in</a>
-          <a href="/signup">Create account</a>
+          <a class="nav-cta" href="/signup">Create account</a>
         {% endif %}
       </nav>
     </div>
   </header>
   {% if demo_mode %}
-  <div class="banner"><div class="wrap">Demo mode is on (no <code>OPENAI_API_KEY</code>). Transcription, summaries, sentiment and UGC briefs use a deterministic stand-in so the full path still runs. Set the key to switch on Whisper and the chat model.</div></div>
+  <div class="banner"><div class="wrap">Demo mode is on. Transcription, summaries, sentiment and briefs use a deterministic stand-in so the full path still runs.</div></div>
   {% endif %}
   <main class="wrap page">
     {% block body %}{% endblock %}
   </main>
   <footer class="site"><div class="wrap">
-    Portfolio app for interviews — JWT auth, SQLite, prompt-driven LLM calls, a public booking / review link, and UGC briefs from real reviews. Data lives in the local database, not in the page.
+    AI Workbench — JWT auth, SQLite, and public booking / review links. A portfolio project by <a href="/#built-by">Ajith Selvaraj</a>.
   </div></footer>
+  <script>
+    (function () {
+      var shell = document.getElementById("appShell");
+      var header = document.querySelector("header.site");
+      var btn = document.getElementById("navToggle");
+      if (btn && header) {
+        btn.addEventListener("click", function () {
+          var open = header.classList.toggle("open");
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

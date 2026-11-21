@@ -36,7 +36,7 @@
 
 <h2>Your brief packs</h2>
 {% if packs %}
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>Title</th><th>Source</th><th>Reviews used</th><th>Language</th><th>Status</th><th></th></tr></thead>
   <tbody>
   {% for p in packs %}
@@ -50,7 +50,7 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p class="muted">No packs yet. Generate one above.</p>
 {% endif %}

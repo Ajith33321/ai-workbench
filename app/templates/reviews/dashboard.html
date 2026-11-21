@@ -49,7 +49,7 @@
 
 <h2 style="margin-top:32px">Reviews (from the database)</h2>
 {% if reviews %}
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>When</th><th>Branch</th><th>Guest</th><th>Score</th><th>Themes</th><th>Review</th></tr></thead>
   <tbody>
   {% for r in reviews %}
@@ -68,14 +68,14 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p class="muted">No reviews yet. Open a branch link to leave one.</p>
 {% endif %}
 
 <h2 style="margin-top:32px">Coupons issued</h2>
 {% if coupons %}
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Branch</th><th>Status</th></tr></thead>
   <tbody>
   {% for c in coupons %}
@@ -88,7 +88,7 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p class="muted">No coupons yet.</p>
 {% endif %}

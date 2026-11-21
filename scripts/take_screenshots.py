@@ -176,6 +176,7 @@ def main() -> int:
 
     shots: list[tuple[str, Path, str | None]] = [
         (f"{BASE}/", OUT / "home.png", None),
+        (f"{BASE}/", OUT / "landing_desktop.png", None),
         (f"{BASE}/meetings", OUT / "meetings_dashboard.png", host),
         (f"{BASE}/book/demo-intro-slot", OUT / "booking_page.png", None),
         (f"{BASE}/reviews", OUT / "reviews_dashboard.png", owner),
@@ -195,6 +196,40 @@ def main() -> int:
     if not _try_playwright(shots):
         print("Playwright not installed; using Chrome DevTools protocol.")
         _cdp_shots(shots)
+
+    # Extra: mobile landing (full page) and viewport product stills for the marketing site.
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                executable_path=CHROME,
+                args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+                headless=True,
+            )
+            img = ROOT / "app" / "static" / "img"
+            img.mkdir(parents=True, exist_ok=True)
+            specs = [
+                (f"{BASE}/", OUT / "landing_mobile.png", None, 390, 844, True, 2),
+                (f"{BASE}/meetings", img / "meetings_dashboard.png", host, 1440, 900, False, 1.5),
+                (f"{BASE}/reviews", img / "reviews_dashboard.png", owner, 1440, 900, False, 1.5),
+                (f"{BASE}/briefs", img / "briefs_dashboard.png", owner, 1440, 900, False, 1.5),
+            ]
+            for url, dest, token, w, h, full, dpr in specs:
+                ctx = browser.new_context(viewport={"width": w, "height": h}, device_scale_factor=dpr)
+                if token:
+                    ctx.add_cookies(
+                        [{"name": "access_token", "value": token, "url": BASE, "httpOnly": True, "sameSite": "Lax"}]
+                    )
+                page = ctx.new_page()
+                page.goto(url, wait_until="networkidle", timeout=30000)
+                page.evaluate("document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'))")
+                page.wait_for_timeout(800)
+                page.screenshot(path=str(dest), full_page=full)
+                print(f"Wrote {dest} ({dest.stat().st_size} bytes)")
+                ctx.close()
+            browser.close()
+    except Exception as exc:
+        print(f"Optional marketing shots skipped: {exc}")
     print("Done.")
     return 0
 

@@ -34,7 +34,7 @@
 
 <h2 style="margin-top:32px">Your booking slots</h2>
 {% if slots %}
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>Title</th><th>Duration</th><th>Public booking link</th></tr></thead>
   <tbody>
   {% for s in slots %}
@@ -45,14 +45,14 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p class="muted">No slots yet.</p>
 {% endif %}
 
 <h2 style="margin-top:32px">Meetings</h2>
 {% if meetings %}
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>Title</th><th>Status</th><th>Summary</th><th></th></tr></thead>
   <tbody>
   {% for m in meetings %}
@@ -64,7 +64,7 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p class="muted">No meetings yet.</p>
 {% endif %}

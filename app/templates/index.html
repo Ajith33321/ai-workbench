@@ -1,43 +1,214 @@
-{% extends "base.html" %}
-{% block title %}AI Workbench — three working Gen AI apps{% endblock %}
-{% block body %}
-<section class="hero">
-  <div class="kicker">Personal portfolio · built to be deployed</div>
-  <h1 class="display">Three small Gen&nbsp;AI apps with real login, a live database, and a public link you can share.</h1>
-  <p class="lead">This is not a slide deck. You can sign in, write to SQLite, and open a booking page or a restaurant review QR just like a guest would. The third desk turns those reviews into shoot-ready UGC briefs in English and Tamil. When an OpenAI key is present, Whisper transcribes audio and a chat model writes the notes, scores the review, or drafts the brief.</p>
-  <div class="actions">
-    <a class="btn" href="/login">Sign in</a>
-    <a class="btn secondary" href="/signup">Create an account</a>
-  </div>
-</section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Workbench — AI that runs the busy work.</title>
+  <meta name="description" content="Three working Gen AI apps by Ajith Selvaraj: Book & Record, Review Rewards, and Review to Reel. Real login, a live database, and a public demo.">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="landing">
+  <header class="lnav" id="siteNav">
+    <div class="bar">
+      <a class="brand" href="/">AI Workbench</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks" id="navToggle"><span></span></button>
+      <nav class="lnav-links" id="navLinks">
+        <a href="#book-record">Book &amp; Record</a>
+        <a href="#review-rewards">Review Rewards</a>
+        <a href="#review-to-reel">Review to Reel</a>
+        <a href="https://github.com/Ajith33321/ai-workbench" target="_blank" rel="noopener">GitHub</a>
+        <a class="nav-cta" href="/login">Try the demo</a>
+      </nav>
+    </div>
+  </header>
 
-<div class="grid-3">
-  <article class="card">
-    <h2>Book &amp; Record</h2>
-    <p>Create a Calendly-style booking slot, share the link, then paste a transcript or upload audio. The app stores the meeting, runs a structured prompt, and shows a summary, checkpoints, decisions and a to-do list with owners.</p>
-    <p class="meta">Stack: FastAPI · JWT cookie auth · SQLite · Whisper (or demo) · JSON-constrained LLM prompt</p>
-    <div class="actions">
-      <a class="btn teal" href="/login?next=/meetings">Open the meetings desk</a>
-    </div>
-    <p class="meta" style="margin-top:14px">Demo host: <code>{{ demo_host }}</code> / <code>{{ demo_password }}</code></p>
-  </article>
-  <article class="card">
-    <h2>Review Rewards</h2>
-    <p>A restaurant owner adds branches, each with a public review link and QR code. A guest submits a review; the app scores sentiment, tags food / service / wait, issues a coupon or cashback code, and the owner dashboard reads it all back from the database.</p>
-    <p class="meta">Stack: FastAPI · JWT · SQLite · QR codes · sentiment prompt (or keyword demo) · coupon ledger</p>
-    <div class="actions">
-      <a class="btn teal" href="/login?next=/reviews">Open the owner dashboard</a>
-    </div>
-    <p class="meta" style="margin-top:14px">Demo owner: <code>{{ demo_owner }}</code> / <code>{{ demo_password }}</code></p>
-  </article>
-  <article class="card">
-    <h2>Review to Reel</h2>
-    <p>A creative desk for a marketer who already shoots UGC. It reads guest reviews from the database (or a pasted batch), clusters themes, and writes one 15-second Reel brief per idea — hooks, shot list, on-screen text, CTA and the verbatim guest lines it used. English and Tamil. You approve a brief before it is marked ready to shoot.</p>
-    <p class="meta">Stack: FastAPI · JWT · SQLite · structured JSON prompt (or demo) · source-review ids · bilingual briefs</p>
-    <div class="actions">
-      <a class="btn teal" href="/login?next=/briefs">Open the briefs desk</a>
-    </div>
-    <p class="meta" style="margin-top:14px">Same owner login as Review Rewards, or any signed-in account with pasted reviews.</p>
-  </article>
-</div>
-{% endblock %}
+  <main>
+    <section class="lhero">
+      <h1>AI that runs the busy work.</h1>
+      <p class="sub">Three working apps. Real login. A live database. A public link you can share.</p>
+      <div class="actions">
+        <a class="pill pill-primary" href="/login">Try live demo</a>
+        <a class="pill pill-secondary" href="https://github.com/Ajith33321/ai-workbench" target="_blank" rel="noopener">View code</a>
+      </div>
+    </section>
+
+    <section class="tile" id="book-record">
+      <div class="tile-inner">
+        <div class="tile-copy reveal">
+          <div class="eyebrow">Book &amp; Record</div>
+          <h2>Meetings, already written&nbsp;up.</h2>
+          <p class="pitch">Share a booking link, drop in a transcript or audio, and get a summary, checkpoints and to-dos.</p>
+          <ul class="features">
+            <li><h3>A public booking link</h3><p>Guests reserve a slot the way they would on a simple calendar page.</p></li>
+            <li><h3>Transcript or audio</h3><p>Paste notes, or upload a recording to transcribe.</p></li>
+            <li><h3>Structured notes</h3><p>Summary, checkpoints, decisions and to-dos — stored in the database.</p></li>
+          </ul>
+          <div class="tile-links">
+            <a href="/book/demo-intro-slot">Learn more <span class="arrow">›</span></a>
+            <a href="/login?next=/meetings">Try it <span class="arrow">›</span></a>
+          </div>
+        </div>
+        <img class="atmosphere reveal" src="/static/img/meeting.jpg" alt="People around a table during a meeting, taking notes.">
+        <div class="device reveal">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ai-workbench / meetings</span></div>
+          <div class="device-screen">
+            <img src="/static/img/meetings_dashboard.png" alt="Book &amp; Record meetings dashboard">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tile alt" id="review-rewards">
+      <div class="tile-inner">
+        <div class="tile-copy reveal">
+          <div class="eyebrow">Review Rewards</div>
+          <h2>Reviews that come back as insight.</h2>
+          <p class="pitch">A QR on the table. A guest review. Sentiment, tags and a coupon — all on the owner dashboard.</p>
+          <ul class="features">
+            <li><h3>Link and QR per branch</h3><p>Each location gets a public review page you can print or share.</p></li>
+            <li><h3>Sentiment and tags</h3><p>Food, service and wait are scored and saved to SQLite.</p></li>
+            <li><h3>A coupon ledger</h3><p>A next-visit code or cashback, written to the same database.</p></li>
+          </ul>
+          <div class="tile-links">
+            <a href="/r/demo-kora">Learn more <span class="arrow">›</span></a>
+            <a href="/login?next=/reviews">Try it <span class="arrow">›</span></a>
+          </div>
+        </div>
+        <img class="atmosphere reveal" src="/static/img/restaurant.jpg" alt="A quiet restaurant dining room with set tables.">
+        <div class="device reveal">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ai-workbench / reviews</span></div>
+          <div class="device-screen">
+            <img src="/static/img/reviews_dashboard.png" alt="Review Rewards owner dashboard">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tile" id="review-to-reel">
+      <div class="tile-inner">
+        <div class="tile-copy reveal">
+          <div class="eyebrow">Review to Reel</div>
+          <h2>Guest words, ready to shoot.</h2>
+          <p class="pitch">Real reviews become 15-second Reel briefs in English and Tamil — with hooks, a shot list and the verbatim lines they came from.</p>
+          <ul class="features">
+            <li><h3>From real reviews</h3><p>Built from saved guest reviews, or a batch you paste in.</p></li>
+            <li><h3>English and Tamil</h3><p>One brief per idea, in the language you choose.</p></li>
+            <li><h3>You approve first</h3><p>Nothing is marked ready to shoot until a person says so. Claims are not invented.</p></li>
+          </ul>
+          <div class="tile-links">
+            <a href="#how-built">Learn more <span class="arrow">›</span></a>
+            <a href="/login?next=/briefs">Try it <span class="arrow">›</span></a>
+          </div>
+        </div>
+        <img class="atmosphere reveal" src="/static/img/reel.jpg" alt="A video editing timeline on a screen.">
+        <div class="device reveal">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ai-workbench / briefs</span></div>
+          <div class="device-screen">
+            <img src="/static/img/briefs_dashboard.png" alt="Review to Reel briefs dashboard">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="built" id="how-built">
+      <h2 class="reveal">How it’s built</h2>
+      <p class="lead reveal">A real app, not a slide deck. You can sign in, write to a database, and open a public link.</p>
+      <div class="built-grid">
+        <article class="built-item reveal">
+          <svg class="ico" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <rect x="6" y="10" width="32" height="24" rx="6" stroke="currentColor" stroke-width="2"/>
+            <path d="M14 22h16M14 27h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <h3>FastAPI</h3>
+          <p>Python web app with HTML pages and a JSON API.</p>
+        </article>
+        <article class="built-item reveal">
+          <svg class="ico" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <rect x="12" y="18" width="20" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M16 18v-3a6 6 0 0 1 12 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <h3>JWT auth</h3>
+          <p>Sign in with an httpOnly cookie or a Bearer token.</p>
+        </article>
+        <article class="built-item reveal">
+          <svg class="ico" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <ellipse cx="22" cy="14" rx="12" ry="5" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 14v12c0 2.8 5.4 5 12 5s12-2.2 12-5V14" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 20c0 2.8 5.4 5 12 5s12-2.2 12-5" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <h3>SQLite</h3>
+          <p>Meetings, reviews, coupons and briefs live in a real database.</p>
+        </article>
+        <article class="built-item reveal">
+          <svg class="ico" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <path d="M9 18v8M15 13v18M21 8v28M27 13v18M35 18v8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+          <h3>OpenAI Whisper + chat</h3>
+          <p>Transcription and structured prompts when an API key is set.</p>
+        </article>
+        <article class="built-item reveal">
+          <svg class="ico" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <path d="M22 28V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M15 18l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 32h24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <h3>Deployed on Vercel</h3>
+          <p>A public demo you can open from a resume or a message.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="author" id="built-by">
+      <h2 class="reveal">Built by Ajith Selvaraj</h2>
+      <p class="role reveal">AI Engineer / performance marketer, Bangalore</p>
+      <div class="author-links reveal">
+        <a href="https://www.linkedin.com/in/ajith-selvaraj-34450a253" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:ajijin2021@gmail.com">ajijin2021@gmail.com</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landing-foot">
+    <div>AI Workbench is a portfolio project by Ajith Selvaraj. <a href="https://github.com/Ajith33321/ai-workbench" target="_blank" rel="noopener">View the code on GitHub</a>.</div>
+    {% if demo_mode %}
+    <div>Demo mode is on — transcription, summaries, sentiment and briefs use a deterministic stand-in so the full path still runs.</div>
+    {% endif %}
+  </footer>
+
+  <script>
+    (function () {
+      var nav = document.getElementById("siteNav");
+      var btn = document.getElementById("navToggle");
+      if (btn && nav) {
+        btn.addEventListener("click", function () {
+          var open = nav.classList.toggle("open");
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+        nav.querySelectorAll("a").forEach(function (a) {
+          a.addEventListener("click", function () {
+            nav.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+          });
+        });
+      }
+      if ("IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+        document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
+      }
+    })();
+  </script>
+</body>
+</html>
