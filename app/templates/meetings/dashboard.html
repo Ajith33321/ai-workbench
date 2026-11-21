@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Meetings desk — Book &amp; Record{% endblock %}
+{% block body %}
+<div class="kicker">Book &amp; Record</div>
+<h1>Meetings desk</h1>
+<p class="muted">Everything on this page is read from SQLite for your signed-in account. Create a public booking slot, or start a meeting and paste a transcript.</p>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>New booking slot</h2>
+    <p>Guests open a public link, the way they would with Calendly. A pending meeting is created when they book.</p>
+    <form method="post" action="/meetings/slots">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" required placeholder="Intro call — 30 min">
+      <label for="description">Description</label>
+      <textarea name="description" id="description" style="min-height:70px"></textarea>
+      <label for="duration_min">Duration (minutes)</label>
+      <input id="duration_min" name="duration_min" type="number" value="30" min="10" max="240">
+      <button class="btn" type="submit">Create slot and booking link</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Or start a meeting now</h2>
+    <p>Skip the booking link if you already have notes or a recording.</p>
+    <form method="post" action="/meetings/manual">
+      <label for="mtitle">Title</label>
+      <input id="mtitle" name="title" type="text" required placeholder="Weekly campaign review">
+      <label for="transcript">Transcript (optional for now)</label>
+      <textarea id="transcript" name="transcript" placeholder="Paste the conversation here, or leave blank and add it on the next page."></textarea>
+      <button class="btn teal" type="submit">Save meeting</button>
+    </form>
+  </section>
+</div>
+
+<h2 style="margin-top:32px">Your booking slots</h2>
+{% if slots %}
+<table>
+  <thead><tr><th>Title</th><th>Duration</th><th>Public booking link</th></tr></thead>
+  <tbody>
+  {% for s in slots %}
+    <tr>
+      <td>{{ s.title }}</td>
+      <td>{{ s.duration_min }} min</td>
+      <td><a class="mono" href="/book/{{ s.booking_token }}">{{ base }}/book/{{ s.booking_token }}</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No slots yet.</p>
+{% endif %}
+
+<h2 style="margin-top:32px">Meetings</h2>
+{% if meetings %}
+<table>
+  <thead><tr><th>Title</th><th>Status</th><th>Summary</th><th></th></tr></thead>
+  <tbody>
+  {% for m in meetings %}
+    <tr>
+      <td>{{ m.title }}</td>
+      <td><span class="chip {{ m.status }}">{{ m.status }}</span></td>
+      <td>{% if m.summary %}{{ m.summary[:160] }}{% if m.summary|length > 160 %}…{% endif %}{% else %}<span class="muted">Waiting for a transcript</span>{% endif %}</td>
+      <td><a href="/meetings/{{ m.id }}">Open</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No meetings yet.</p>
+{% endif %}
+{% endblock %}

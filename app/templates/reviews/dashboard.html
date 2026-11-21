@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Owner dashboard — Review Rewards{% endblock %}
+{% block body %}
+<div class="kicker">Review Rewards</div>
+<h1>{{ restaurant.name if restaurant else "Your restaurant" }}</h1>
+<p class="muted">Sentiment, theme tags and coupon codes are stored in SQLite and loaded for this dashboard. Share a branch link or print the QR for the table.</p>
+
+{% if stats %}
+<div class="grid-3" style="margin:18px 0 24px">
+  {% for s in stats %}
+  <div class="stat">
+    <div class="l">{{ s.branch.name }}</div>
+    <div class="n">{% if s.avg is not none %}{{ s.avg }}{% else %}—{% endif %}<span style="font-size:0.9rem"> / 5</span></div>
+    <p class="meta" style="margin:6px 0 0">{{ s.count }} reviews · {{ s.positive }} pos · {{ s.negative }} neg · {{ s.coupons }} coupons</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Add a branch</h2>
+    <form method="post" action="/reviews/branches">
+      <label for="name">Branch name</label>
+      <input id="name" name="name" type="text" required placeholder="HSR Layout">
+      <label for="address">Address</label>
+      <input id="address" name="address" type="text" placeholder="Bengaluru">
+      <button class="btn" type="submit">Create branch and QR link</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Branch links and QR codes</h2>
+    {% if branches %}
+      {% for b in branches %}
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+        <img class="qr" alt="QR for {{ b.name }}" src="/qr/{{ b.public_token }}.png">
+        <div>
+          <strong>{{ b.name }}</strong>
+          <div class="meta">{{ b.address }}</div>
+          <div><a class="mono" href="/r/{{ b.public_token }}">{{ base }}/r/{{ b.public_token }}</a></div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">Add a branch to get a public review link.</p>
+    {% endif %}
+  </section>
+</div>
+
+<h2 style="margin-top:32px">Reviews (from the database)</h2>
+{% if reviews %}
+<table>
+  <thead><tr><th>When</th><th>Branch</th><th>Guest</th><th>Score</th><th>Themes</th><th>Review</th></tr></thead>
+  <tbody>
+  {% for r in reviews %}
+    <tr>
+      <td class="meta">{{ r.created_at.strftime('%d %b') }}</td>
+      <td>{{ r.branch.name if r.branch else r.branch_id }}</td>
+      <td>{{ r.customer_name }}</td>
+      <td><span class="chip {{ r.sentiment_label }}">{{ r.sentiment_score }} · {{ r.sentiment_label }}</span></td>
+      <td>
+        {% set th = r.themes() %}
+        <span class="chip {{ th.get('food','na') }}">food {{ th.get('food','na') }}</span>
+        <span class="chip {{ th.get('service','na') }}">service {{ th.get('service','na') }}</span>
+        <span class="chip {{ th.get('wait','na') }}">wait {{ th.get('wait','na') }}</span>
+      </td>
+      <td>{{ r.text }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No reviews yet. Open a branch link to leave one.</p>
+{% endif %}
+
+<h2 style="margin-top:32px">Coupons issued</h2>
+{% if coupons %}
+<table>
+  <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Branch</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for c in coupons %}
+    <tr>
+      <td class="mono">{{ c.code }}</td>
+      <td>{{ c.kind }}</td>
+      <td>{{ c.value_text }}</td>
+      <td>{{ c.branch.name if c.branch else c.branch_id }}</td>
+      <td><span class="chip">{{ c.status }}</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No coupons yet.</p>
+{% endif %}
+{% endblock %}

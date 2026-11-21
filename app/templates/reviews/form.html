@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Review {{ branch.restaurant.name if branch.restaurant else '' }} — {{ branch.name }}{% endblock %}
+{% block body %}
+<div class="kicker">Guest review</div>
+<h1>{{ branch.restaurant.name if branch.restaurant else "Restaurant" }}</h1>
+<p class="muted">{{ branch.name }}{% if branch.address %} · {{ branch.address }}{% endif %}</p>
+<p>Tell us about the food, the service and the wait. A genuine review — including a critical one — can earn a next-visit coupon or a small cashback code.</p>
+{% if error %}<div class="flash">{{ error }}</div>{% endif %}
+<form method="post" class="card" style="max-width:560px">
+  <label for="customer_name">Your name</label>
+  <input id="customer_name" name="customer_name" type="text" required>
+  <label for="customer_phone">Phone (optional, for cashback)</label>
+  <input id="customer_phone" name="customer_phone" type="text">
+  <label for="text">Your review</label>
+  <textarea id="text" name="text" required placeholder="What did you eat? How was the service and the wait?"></textarea>
+  <button class="btn" type="submit">Submit review</button>
+</form>
+{% endblock %}

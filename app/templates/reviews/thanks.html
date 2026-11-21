@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Thank you — Review Rewards{% endblock %}
+{% block body %}
+<div class="kicker">Review received</div>
+<h1>Thank you, {{ review.customer_name }}.</h1>
+<p>Your review for <strong>{{ branch.name }}</strong> is saved. The owner will see the score and theme tags on their dashboard.</p>
+<div class="grid-2">
+  <section class="card">
+    <h2>How we read it</h2>
+    <p><span class="chip {{ review.sentiment_label }}">{{ review.sentiment_score }} / 5 · {{ review.sentiment_label }}</span></p>
+    <p class="muted">{{ review.themes_note }}</p>
+  </section>
+  <section class="card">
+    {% if coupon %}
+      <h2>Your reward</h2>
+      <p class="display" style="font-size:1.8rem;margin:0">{{ coupon.code }}</p>
+      <p>{{ coupon.value_text }} <span class="chip">{{ coupon.kind }}</span></p>
+      <p class="meta">Show this code on your next visit. It is stored on the coupon ledger.</p>
+    {% else %}
+      <h2>No reward this time</h2>
+      <p>Short or empty reviews are not rewarded, so the ledger stays honest.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

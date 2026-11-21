@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}AI Workbench — Book &amp; Record and Review Rewards{% endblock %}
+{% block body %}
+<section class="hero">
+  <div class="kicker">Personal portfolio · built to be deployed</div>
+  <h1 class="display">Two small Gen&nbsp;AI apps with real login, a live database, and a public link you can share.</h1>
+  <p class="lead">This is not a slide deck. You can sign in, write to SQLite, and open a booking page or a restaurant review QR just like a guest would. When an OpenAI key is present, Whisper transcribes audio and a chat model writes the notes or scores the review.</p>
+  <div class="actions">
+    <a class="btn" href="/login">Sign in</a>
+    <a class="btn secondary" href="/signup">Create an account</a>
+  </div>
+</section>
+
+<div class="grid-2">
+  <article class="card">
+    <h2>Book &amp; Record</h2>
+    <p>Create a Calendly-style booking slot, share the link, then paste a transcript or upload audio. The app stores the meeting, runs a structured prompt, and shows a summary, checkpoints, decisions and a to-do list with owners.</p>
+    <p class="meta">Stack: FastAPI · JWT cookie auth · SQLite · Whisper (or demo) · JSON-constrained LLM prompt</p>
+    <div class="actions">
+      <a class="btn teal" href="/login?next=/meetings">Open the meetings desk</a>
+    </div>
+    <p class="meta" style="margin-top:14px">Demo host: <code>{{ demo_host }}</code> / <code>{{ demo_password }}</code></p>
+  </article>
+  <article class="card">
+    <h2>Review Rewards</h2>
+    <p>A restaurant owner adds branches, each with a public review link and QR code. A guest submits a review; the app scores sentiment, tags food / service / wait, issues a coupon or cashback code, and the owner dashboard reads it all back from the database.</p>
+    <p class="meta">Stack: FastAPI · JWT · SQLite · QR codes · sentiment prompt (or keyword demo) · coupon ledger</p>
+    <div class="actions">
+      <a class="btn teal" href="/login?next=/reviews">Open the owner dashboard</a>
+    </div>
+    <p class="meta" style="margin-top:14px">Demo owner: <code>{{ demo_owner }}</code> / <code>{{ demo_password }}</code></p>
+  </article>
+</div>
+{% endblock %}

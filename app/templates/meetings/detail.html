@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ meeting.title }} — Book &amp; Record{% endblock %}
+{% block body %}
+<p class="meta"><a href="/meetings">← Meetings desk</a></p>
+<div class="kicker">{{ meeting.status }} · source {{ meeting.source or "—" }}</div>
+<h1>{{ meeting.title }}</h1>
+{% if error %}<div class="flash">{{ error }}</div>{% endif %}
+
+<div class="split">
+  <section class="card">
+    <h2>Transcript or audio</h2>
+    <form method="post" action="/meetings/{{ meeting.id }}/process" enctype="multipart/form-data">
+      <label for="transcript">Paste a transcript</label>
+      <textarea id="transcript" name="transcript">{{ meeting.transcript }}</textarea>
+      <label for="audio">Or upload audio (mp3, wav, m4a, webm — max 25 MB)</label>
+      <input id="audio" name="audio" type="file" accept="audio/*,.mp3,.wav,.m4a,.webm">
+      <button class="btn" type="submit">Transcribe (if needed) and generate notes</button>
+    </form>
+    <p class="meta">With an API key, audio goes to OpenAI Whisper. Without one, a deterministic demo transcript is stored so you can still walk the path.</p>
+  </section>
+  <aside class="stack">
+    {% if meeting.status == 'processed' %}
+    <div class="card">
+      <h2>Summary</h2>
+      <p>{{ meeting.summary }}</p>
+    </div>
+    <div class="card">
+      <h2>Checkpoints</h2>
+      {% for c in meeting.checkpoints() %}
+        <p><span class="chip {{ c.status|default('open') }}">{{ c.status|default('open') }}</span> {{ c.item }}</p>
+      {% else %}
+        <p class="muted">None extracted.</p>
+      {% endfor %}
+    </div>
+    <div class="card">
+      <h2>Decisions</h2>
+      <ul>
+        {% for d in meeting.decisions() %}<li>{{ d }}</li>{% else %}<li class="muted">None extracted.</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="card">
+      <h2>To-dos</h2>
+      <table>
+        <thead><tr><th>Task</th><th>Owner</th><th>Due</th></tr></thead>
+        <tbody>
+        {% for t in meeting.todos() %}
+          <tr><td>{{ t.task }}</td><td>{{ t.owner }}</td><td>{{ t.due }}</td></tr>
+        {% else %}
+          <tr><td colspan="3" class="muted">None extracted.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card">
+      <p class="muted">Notes will appear here after you run the generator. They are written to the <code>meetings</code> table, then read back for this page.</p>
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

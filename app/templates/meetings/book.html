@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Book {{ slot.title }}{% endblock %}
+{% block body %}
+<div class="kicker">Public booking link</div>
+<h1>{{ slot.title }}</h1>
+<p class="muted">Hosted by {{ host.name if host else "the host" }} · {{ slot.duration_min }} minutes</p>
+{% if slot.description %}<p>{{ slot.description }}</p>{% endif %}
+
+{% if done %}
+<div class="card">
+  <h2>You're booked.</h2>
+  <p>The host will see this on their meetings desk. After the call they can paste a transcript or upload audio to generate notes.</p>
+</div>
+{% else %}
+{% if error %}<div class="flash">{{ error }}</div>{% endif %}
+<form method="post" class="card" style="max-width:520px">
+  <label for="guest_name">Your name</label>
+  <input id="guest_name" name="guest_name" type="text" required>
+  <label for="guest_email">Email</label>
+  <input id="guest_email" name="guest_email" type="email" required>
+  <label for="notes">Note for the host (optional)</label>
+  <textarea id="notes" name="notes" style="min-height:80px"></textarea>
+  <button class="btn" type="submit">Confirm booking</button>
+</form>
+{% endif %}
+{% endblock %}
